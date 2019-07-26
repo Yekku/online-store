@@ -20,5 +20,21 @@ router.get('/:id', async (req, res) => {
   })
 })
 
+router.post('/edit', async (req, res) => {
+  await Course.update(req.body)
+  res.redirect(`/courses/${req.body.id}`)
+})
+
+router.get('/:id/edit', async (req, res) => {
+  if (!req.query.allow) {
+    return res.redirect('/')
+  }
+  const course = await Course.getById(req.params.id)
+  res.render('edit-course', {
+  title: `Edit ${course.title}`,
+  course
+  })
+})
+
 
 module.exports = router
