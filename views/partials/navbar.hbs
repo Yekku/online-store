@@ -12,6 +12,11 @@
       {{else}}
       <li><a href="/courses">Courses</a></li>
       {{/if}}
+      {{#if isCard}}
+      <li class="active"><a href="/card">Card</a></li>
+      {{else}}
+      <li><a href="/card">Card</a></li>
+      {{/if}}
       <li><a class="waves-effect red waves-light btn" href="/add">Add course</a></li>
     </ul>
   </div>
