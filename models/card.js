@@ -1,75 +1,57 @@
 const path = require('path')
-const fs = require('fs');
+const fs = require('fs/promises')
 
-const p = path.join(
-  path.dirname(process.mainModule.filename),
-  'data',
-  'card.json'
-)
+const filePath = path.join(__dirname, '..', 'data', 'card.json')
 
 class Card {
   static async add(course) {
-    const card = await Card.fetch();
-    const idx = card.courses.findIndex(c => c.id === course.id);
-    const condidate = card.courses[idx];
-    if (condidate) {
-      // Course already in card
-      condidate.count++;
-      card.courses[idx] = condidate;
+    const card = await Card.fetch()
+    const idx = card.courses.findIndex(c => c.id === course.id)
+    const candidate = card.courses[idx]
+
+    if (candidate) {
+      candidate.count++
+      card.courses[idx] = candidate
     } else {
-      // Course need add
-      course.count = 1;
-      card.courses.push(course);
+      course.count = 1
+      card.courses.push(course)
     }
-    card.price += +course.price;
-    return new Promise((resolve, reject) => {
-      fs.writeFile(p, JSON.stringify(card), err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+
+    card.price = Card.calculatePrice(card.courses)
+
+    await fs.writeFile(filePath, JSON.stringify(card, null, 2))
   }
 
   static async fetch() {
-    return new Promise((resolve, reject) => {
-      fs.readFile(p, 'utf-8', (err, content) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(JSON.parse(content));
-        }
-      });
-    });
+    const content = await fs.readFile(filePath, 'utf-8')
+    return JSON.parse(content)
   }
 
   static async remove(id) {
-    const card = await Card.fetch();
+    const card = await Card.fetch()
+    const idx = card.courses.findIndex(c => c.id === id)
 
-    const idx = card.courses.findIndex(c => c.id === id);
-    const course = card.courses[idx];
-
-    if (course.count === 1) {
-      // delete
-      card.courses = card.courses.filter(c => c.id !== id);
-    } else {
-      // edit count
-      card.courses[idx].count--;
+    if (idx === -1) {
+      return card
     }
 
-    card.price -= course.price;
+    const course = card.courses[idx]
 
-    return new Promise((resolve, reject) => {
-      fs.writeFile(p, JSON.stringify(card), err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(card);
-        }
-      });
-    });
+    if (course.count === 1) {
+      card.courses = card.courses.filter(c => c.id !== id)
+    } else {
+      card.courses[idx].count--
+    }
+
+    card.price = Card.calculatePrice(card.courses)
+
+    await fs.writeFile(filePath, JSON.stringify(card, null, 2))
+    return card
+  }
+
+  static calculatePrice(courses) {
+    return +courses.reduce((acc, c) => acc + c.price * c.count, 0).toFixed(2)
   }
 }
-module.exports = Card 
+
+module.exports = Card
