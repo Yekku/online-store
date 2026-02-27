@@ -16,6 +16,10 @@
     <label for="img">image URL</label>
     <span class="helper-text" data-error="Enter image url"></span>
   </div>
+  <div class="input-field">
+    <textarea id="description" name="description" class="materialize-textarea">{{course.description}}</textarea>
+    <label for="description">Description (optional)</label>
+  </div>
   <input type="hidden" name="id" value="{{course.id}}">
   <button class="btn btn-primary">Save</button>
 </form>

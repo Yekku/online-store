@@ -1,6 +1,11 @@
 <div class="course">
   <h1>{{course.title}}</h1>
-  <img src="{{course.img}}" alt="{{course.title}}">
+  <div class="course-image">
+    <img src="{{course.img}}" alt="{{course.title}}">
+  </div>
+  {{#if course.description}}
+    <p class="course-description">{{course.description}}</p>
+  {{/if}}
   <p class="price big">{{course.price}}</p>
   <a class="waves-effect red waves-light btn" href="/courses">Back to all courses page</a>
 </div>

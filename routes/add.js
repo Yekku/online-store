@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const Course = require('../models/course')
+const Course = require('../models/course');
 const router = Router();
 
 router.get('/', (req, res) => {
@@ -10,9 +10,25 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  course = new Course(req.body.title, req.body.price, req.body.img)
-  await course.save()
-  res.redirect('/courses')
-})
+  try {
+    const { title, price, img, description } = req.body;
+
+    if (!title || !price || !img) {
+      return res.status(400).redirect('/add');
+    }
+
+    const parsedPrice = parseFloat(price);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      return res.status(400).redirect('/add');
+    }
+
+    const course = new Course(title.trim(), parsedPrice, img.trim(), (description || '').trim());
+    await course.save();
+    res.redirect('/courses');
+  } catch (e) {
+    console.error('Error adding course:', e);
+    res.status(500).render('error', { title: 'Error', message: 'Failed to add course' });
+  }
+});
 
 module.exports = router;

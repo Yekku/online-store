@@ -1,75 +1,95 @@
-const path = require('path')
-const fs = require('fs');
+const { Schema, model } = require('mongoose')
 
-const p = path.join(
-  path.dirname(process.mainModule.filename),
-  'data',
-  'card.json'
-)
+const cardItemSchema = new Schema({
+  courseId: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
+  title: { type: String, required: true },
+  price: { type: Number, required: true },
+  img: { type: String, required: true },
+  count: { type: Number, required: true, default: 1 },
+}, { _id: false })
+
+const cardSchema = new Schema({
+  courses: [cardItemSchema],
+  price: { type: Number, default: 0 },
+})
+
+const CardModel = model('Card', cardSchema)
 
 class Card {
-  static async add(course) {
-    const card = await Card.fetch();
-    const idx = card.courses.findIndex(c => c.id === course.id);
-    const condidate = card.courses[idx];
-    if (condidate) {
-      // Course already in card
-      condidate.count++;
-      card.courses[idx] = condidate;
-    } else {
-      // Course need add
-      course.count = 1;
-      card.courses.push(course);
+  static async _getOrCreate() {
+    let card = await CardModel.findOne()
+    if (!card) {
+      card = await CardModel.create({ courses: [], price: 0 })
     }
-    card.price += +course.price;
-    return new Promise((resolve, reject) => {
-      fs.writeFile(p, JSON.stringify(card), err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+    return card
+  }
+
+  static _formatCard(card) {
+    const obj = card.toObject()
+    obj.courses = obj.courses.map(c => ({
+      id: c.courseId.toString(),
+      title: c.title,
+      price: c.price,
+      img: c.img,
+      count: c.count,
+    }))
+    delete obj._id
+    delete obj.__v
+    return obj
+  }
+
+  static async add(course) {
+    const card = await Card._getOrCreate()
+    const idx = card.courses.findIndex(
+      c => c.courseId.toString() === course.id
+    )
+
+    if (idx !== -1) {
+      card.courses[idx].count++
+    } else {
+      card.courses.push({
+        courseId: course.id,
+        title: course.title,
+        price: course.price,
+        img: course.img,
+        count: 1,
+      })
+    }
+
+    card.price = Card.calculatePrice(card.courses)
+    await card.save()
   }
 
   static async fetch() {
-    return new Promise((resolve, reject) => {
-      fs.readFile(p, 'utf-8', (err, content) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(JSON.parse(content));
-        }
-      });
-    });
+    const card = await Card._getOrCreate()
+    return Card._formatCard(card)
   }
 
   static async remove(id) {
-    const card = await Card.fetch();
+    const card = await Card._getOrCreate()
+    const idx = card.courses.findIndex(
+      c => c.courseId.toString() === id
+    )
 
-    const idx = card.courses.findIndex(c => c.id === id);
-    const course = card.courses[idx];
-
-    if (course.count === 1) {
-      // delete
-      card.courses = card.courses.filter(c => c.id !== id);
-    } else {
-      // edit count
-      card.courses[idx].count--;
+    if (idx === -1) {
+      return Card._formatCard(card)
     }
 
-    card.price -= course.price;
+    if (card.courses[idx].count === 1) {
+      card.courses.splice(idx, 1)
+    } else {
+      card.courses[idx].count--
+    }
 
-    return new Promise((resolve, reject) => {
-      fs.writeFile(p, JSON.stringify(card), err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(card);
-        }
-      });
-    });
+    card.price = Card.calculatePrice(card.courses)
+    await card.save()
+    return Card._formatCard(card)
+  }
+
+  static calculatePrice(courses) {
+    return +courses.reduce((acc, c) => acc + c.price * c.count, 0).toFixed(2)
   }
 }
-module.exports = Card 
+
+module.exports = Card
+module.exports.CardModel = CardModel

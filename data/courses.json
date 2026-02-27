@@ -1,1 +1,20 @@
-[{"title":"Angular 8","price":"450","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Angular_full_color_logo.svg/250px-Angular_full_color_logo.svg.png","id":"12868a15-0bb5-4438-b8ef-60cdef8a879f"},{"title":"Vue JS","price":"550","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vue.js_Logo_2.svg/1200px-Vue.js_Logo_2.svg.png","id":"372f8fdc-2e8d-4a21-ac27-c5ba24c3cfba"}]
+[
+  {
+    "title": "Angular 8",
+    "price": 450,
+    "img": "https://angular.io/assets/images/logos/angular/angular.svg",
+    "id": "12868a15-0bb5-4438-b8ef-60cdef8a879f"
+  },
+  {
+    "title": "Vue JS",
+    "price": 550,
+    "img": "https://cdn.jsdelivr.net/gh/vuejs/art@master/logo.png",
+    "id": "372f8fdc-2e8d-4a21-ac27-c5ba24c3cfba"
+  },
+  {
+    "title": "NestJs",
+    "price": 600,
+    "img": "https://nestjs.com/img/logo-small.svg",
+    "id": "735d6c58-5416-4724-acdd-7e4a234ab08c"
+  }
+]
