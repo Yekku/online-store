@@ -1,5 +1,7 @@
+require('dotenv').config()
 const express = require('express')
 const path = require('path')
+const mongoose = require('mongoose')
 const { create } = require('express-handlebars')
 const homeRoutes = require('./routes/home')
 const coursesRoutes = require('./routes/courses')
@@ -12,6 +14,7 @@ const hbs = create({
   extname: 'hbs'
 })
 const PORT = process.env.PORT || 3000
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://admin:secret@localhost:27017/online-store?authSource=admin'
 
 app.engine('hbs', hbs.engine)
 app.set('view engine', 'hbs')
@@ -42,6 +45,18 @@ app.use((err, req, res, next) => {
   })
 })
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`)
-})
+async function start() {
+  try {
+    await mongoose.connect(MONGO_URI)
+    console.log('Connected to MongoDB')
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`)
+    })
+  } catch (e) {
+    console.error('Failed to connect to MongoDB:', e.message)
+    process.exit(1)
+  }
+}
+
+start()

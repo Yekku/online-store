@@ -35,7 +35,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/edit', async (req, res) => {
   try {
-    const { id, title, price, img } = req.body;
+    const { id, title, price, img, description } = req.body;
 
     if (!id || !title || !price || !img) {
       return res.status(400).redirect('/courses');
@@ -46,7 +46,7 @@ router.post('/edit', async (req, res) => {
       return res.status(400).redirect(`/courses/${id}/edit?allow=true`);
     }
 
-    await Course.update({ id, title: title.trim(), price: parsedPrice, img: img.trim() });
+    await Course.update({ id, title: title.trim(), price: parsedPrice, img: img.trim(), description: (description || '').trim() });
     res.redirect(`/courses/${id}`);
   } catch (e) {
     console.error('Error updating course:', e);

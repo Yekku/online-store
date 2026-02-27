@@ -1,51 +1,54 @@
-const crypto = require('crypto')
-const fs = require('fs/promises')
-const path = require('path')
+const { Schema, model } = require('mongoose')
 
-const filePath = path.join(__dirname, '..', 'data', 'courses.json')
+const courseSchema = new Schema({
+  title: { type: String, required: true },
+  price: { type: Number, required: true },
+  img: { type: String, required: true },
+  description: { type: String, default: '' },
+})
+
+const CourseModel = model('Course', courseSchema)
+
+function toPlain(doc) {
+  if (!doc) return null
+  const obj = doc.toObject()
+  obj.id = obj._id.toString()
+  delete obj._id
+  delete obj.__v
+  return obj
+}
 
 class Course {
-  constructor(title, price, img) {
-    this.title = title
-    this.price = price
-    this.img = img
-    this.id = crypto.randomUUID()
-  }
-
-  toJSON() {
-    return {
-      title: this.title,
-      price: this.price,
-      img: this.img,
-      id: this.id
-    }
+  constructor(title, price, img, description) {
+    this._doc = new CourseModel({ title, price, img, description })
   }
 
   async save() {
-    const courses = await Course.getAll()
-    courses.push(this.toJSON())
-    await fs.writeFile(filePath, JSON.stringify(courses, null, 2))
+    await this._doc.save()
+  }
+
+  toJSON() {
+    return toPlain(this._doc)
   }
 
   static async getAll() {
-    const content = await fs.readFile(filePath, 'utf-8')
-    return JSON.parse(content)
+    const courses = await CourseModel.find()
+    return courses.map(toPlain)
   }
 
   static async getById(id) {
-    const courses = await Course.getAll()
-    return courses.find(c => c.id === id)
+    const course = await CourseModel.findById(id)
+    return toPlain(course)
   }
 
   static async update(course) {
-    const courses = await Course.getAll()
-    const idx = courses.findIndex(c => c.id === course.id)
-    if (idx === -1) {
+    const { id, ...data } = course
+    const result = await CourseModel.findByIdAndUpdate(id, data, { new: true })
+    if (!result) {
       throw new Error('Course not found')
     }
-    courses[idx] = course
-    await fs.writeFile(filePath, JSON.stringify(courses, null, 2))
   }
 }
 
 module.exports = Course
+module.exports.CourseModel = CourseModel

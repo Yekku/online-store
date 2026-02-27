@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { title, price, img } = req.body;
+    const { title, price, img, description } = req.body;
 
     if (!title || !price || !img) {
       return res.status(400).redirect('/add');
@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
       return res.status(400).redirect('/add');
     }
 
-    const course = new Course(title.trim(), parsedPrice, img.trim());
+    const course = new Course(title.trim(), parsedPrice, img.trim(), (description || '').trim());
     await course.save();
     res.redirect('/courses');
   } catch (e) {

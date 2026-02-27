@@ -9,6 +9,9 @@
           </div>
           <div class="card-content">
             <span class="card-title">{{title}}</span>
+            {{#if description}}
+              <p class="card-description">{{description}}</p>
+            {{/if}}
             <p class="price">{{price}}</p>
           </div>
           <div class="card-action actions">
@@ -24,5 +27,5 @@
     </div>
   {{/each}}
 {{else}}
-  <span>We havn't course anymore!</span>
+  <span>No courses available yet!</span>
 {{/if}}
